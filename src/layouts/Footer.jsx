@@ -1,7 +1,7 @@
 const Footer = () => {
     return(
-        <div>
-            все права забрали себе
+        <div className="flex items-center justify-between p-4 bg-gray-800 text-white">
+            <p>все права забрали себе</p>
         </div>
     )
 }

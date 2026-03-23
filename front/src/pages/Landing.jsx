@@ -1,340 +1,160 @@
 import { Link } from 'react-router-dom';
 import { 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Calendar, 
-  Zap, 
-  BookOpen,
-  CheckCircle,
-  ArrowRight,
-  Sparkles,
-  HelpCircle,
-  Menu,
-  X
+  Brain, Target, Zap, BookOpen, CheckCircle, 
+  Sparkles, Gamepad2, LineChart, ShieldCheck, 
+  ChevronRight, Award 
 } from 'lucide-react';
-import { useState } from 'react';
 import Button from '@/components/ui/Button';
 
 export default function Landing() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const features = [
-    {
-      icon: Brain,
-      title: 'Умный алгоритм',
-      description: 'SM-2 алгоритм интервального повторения для эффективного запоминания'
-    },
-    {
-      icon: Calendar,
-      title: 'Персональное расписание',
-      description: 'Система автоматически планирует повторения в оптимальное время'
-    },
-    {
-      icon: Target,
-      title: 'Отслеживание прогресса',
-      description: 'Детальная статистика и визуализация вашего обучения'
-    },
-    {
-      icon: Zap,
-      title: 'Быстрое обучение',
-      description: 'Два режима: обучение с алгоритмом и свободная тренировка'
-    }
-  ];
-
-  const benefits = [
-    'Запоминайте информацию надолго',
-    'Экономьте время на повторениях',
-    'Учитесь в удобном темпе',
-    'Отслеживайте свой прогресс',
-    'Создавайте неограниченное количество колод',
-    'Бесплатно и без рекламы'
-  ];
-
-  const steps = [
-    {
-      number: '01',
-      title: 'Создайте колоду',
-      description: 'Добавьте карточки с вопросами и ответами по любой теме'
-    },
-    {
-      number: '02',
-      title: 'Начните обучение',
-      description: 'Система покажет карточки в оптимальном порядке'
-    },
-    {
-      number: '03',
-      title: 'Оценивайте знания',
-      description: 'Отмечайте, насколько хорошо вы помните каждую карточку'
-    },
-    {
-      number: '04',
-      title: 'Повторяйте',
-      description: 'Алгоритм автоматически планирует следующие повторения'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-white">
-      <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-200 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="text-white" size={20} />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Memora</span>
+    <div className="min-h-screen bg-[#FAFBFF] text-slate-900 selection:bg-blue-100 font-sans">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-18 flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-blue-200 shadow-lg group-hover:scale-105 transition-transform">
+              <Brain className="text-white" size={22} />
+            </div>
+            <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+              Memora
+            </span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+            <a href="#modes" className="hover:text-blue-600 transition-colors">Режимы</a>
+            <a href="#pet" className="hover:text-blue-600 transition-colors">Питомец</a>
+            <Link to="/faq" className="hover:text-blue-600 transition-colors">Методика SM-2</Link>
+            <div className="h-4 w-px bg-slate-200" />
+            <Link to="/login" className="text-slate-900">Войти</Link>
+            <Link to="/register">
+              <Button className="rounded-full px-6">Создать аккаунт</Button>
             </Link>
-
-            <div className="hidden md:flex items-center space-x-3">
-              <Link to="/faq">
-                <Button variant="secondary" size="sm" className="flex items-center gap-1">
-                  <HelpCircle size={16} />
-                  FAQ
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="secondary" size="sm">Вход</Button>
-              </Link>
-              <Link to="/register">
-                <Button size="sm">Регистрация</Button>
-              </Link>
-            </div>
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
           </div>
-
-          {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200">
-              <div className="flex flex-col space-y-3">
-                <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
-                    <HelpCircle size={16} />
-                    FAQ
-                  </Button>
-                </Link>
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="secondary" className="w-full">Вход</Button>
-                </Link>
-                <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full">Регистрация</Button>
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
-      </header>
+      </nav>
 
-      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center pt-8 sm:pt-12">
-            <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 sm:mb-8">
-              <Sparkles size={16} />
-              <span>Умная система запоминания</span>
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6">
+              <ShieldCheck size={14} /> Powered by SM-2
             </div>
-            
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight px-4">
-              Запоминайте быстрее с{' '}
-              <span className="text-blue-600">Memora</span>
+            <h1 className="text-6xl md:text-7xl font-black leading-[1.1] mb-8 tracking-tight text-slate-900">
+              Знания, которые <br />
+              <span className="text-blue-600">не испаряются.</span>
             </h1>
-            
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 sm:mb-10 leading-relaxed max-w-3xl mx-auto px-4">
-              Платформа для эффективного обучения на основе научно доказанного метода 
-              интервального повторения. Учитесь умнее, а не дольше.
+            <p className="text-xl text-slate-500 mb-10 leading-relaxed max-w-lg">
+              Memora превращает хаотичное обучение в систему. Используйте научно доказанные интервалы, чтобы помнить 90% изученного через год.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4">
-              <Link to="/register" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow">
-                  Начать бесплатно
-                  <ArrowRight size={18} className="ml-2" />
-                </Button>
-              </Link>
-              <a href="#how-it-works" className="w-full sm:w-auto">
-                <Button variant="secondary" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold">
-                  Как это работает
-                </Button>
-              </a>
-            </div>
-
-            <Link to="/faq" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium transition-colors mb-8 sm:mb-12">
-              <HelpCircle size={20} />
-              <span className="text-sm sm:text-base">Есть вопросы? Читайте FAQ</span>
-              <ArrowRight size={16} />
+            <Link to="/register">
+              <Button size="lg" className="h-16 px-10 rounded-2xl text-lg font-bold shadow-xl shadow-blue-100">
+                Начать бесплатно
+              </Button>
             </Link>
-
-           
+          </div>
+          
+          <div className="relative group">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-blue-100 to-indigo-100 rounded-[3rem] blur-2xl opacity-50 transition-opacity" />
+            <div className="relative bg-white border border-slate-200 rounded-[2rem] shadow-2xl overflow-hidden p-6">
+               <div className="space-y-4">
+                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                    <span className="font-bold text-slate-700">Карточек на сегодня</span>
+                    <span className="text-blue-600 font-black text-2xl">24</span>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-blue-600 rounded-xl text-white">
+                       <Award className="mb-2" size={20} />
+                       <div className="text-xs opacity-80 font-medium">Уровень питомца</div>
+                       <div className="text-xl font-bold italic">Level 12</div>
+                    </div>
+                    <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                       <LineChart className="text-indigo-600 mb-2" size={20} />
+                       <div className="text-xs text-slate-500 font-medium text-nowrap">Streak</div>
+                       <div className="text-xl font-bold text-slate-900 text-nowrap">8 дней</div>
+                    </div>
+                 </div>
+               </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Всё для эффективного обучения
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-              Современные инструменты для максимальных результатов
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-              <div
-                key={index}
-                className="p-5 sm:p-6 md:p-8 rounded-2xl bg-white border-2 border-gray-200 hover:border-blue-400 hover:shadow-soft-lg transition-all duration-300"
-              >
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-4 sm:mb-5">
-                  <Icon className="text-blue-600" size={24} />
+      <section id="modes" className="py-24 bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-black text-slate-900 mb-4">Больше, чем просто карточки</h2>
+          <p className="text-slate-500 max-w-2xl mx-auto mb-16">4 уникальных режима обучения для любого стиля подготовки.</p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+            {[
+              { icon: Zap, title: "Интервальное SM-2", desc: "Алгоритм сам назначает даты повторений.", color: "bg-orange-50 text-orange-600" },
+              { icon: BookOpen, title: "Свободная практика", desc: "Просматривайте колоды без влияния на прогресс.", color: "bg-blue-50 text-blue-600" },
+              { icon: Gamepad2, title: "Подбор пар", desc: "Динамичная игра на время: соединяйте вопрос и ответ.", color: "bg-green-50 text-green-600" },
+              { icon: Target, title: "Тест-режим", desc: "Проверьте себя в формате экзамена с вариантами.", color: "bg-purple-50 text-purple-600" }
+            ].map((mode, i) => (
+              <div key={i} className="group p-8 rounded-3xl border border-slate-100 bg-[#FAFBFF] hover:bg-white hover:shadow-xl transition-all">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${mode.color}`}>
+                  <mode.icon size={28} />
                 </div>
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section id="how-it-works" className="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Как это работает
-            </h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-              Четыре простых шага к эффективному обучению
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {steps.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl border-2 border-gray-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 h-full">
-                  <div className="text-5xl sm:text-6xl md:text-7xl font-bold text-blue-100 mb-4 sm:mb-5 leading-none">
-                    {step.number}
-                  </div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
+                <h3 className="text-xl font-bold mb-3">{mode.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{mode.desc}</p>
               </div>
             ))}
           </div>
-
-          <div className="text-center mt-8 sm:mt-12">
-            <Link to="/faq" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium text-base sm:text-lg transition-colors">
-              <span>Узнайте больше в разделе FAQ</span>
-              <ArrowRight size={20} />
-            </Link>
-          </div>
         </div>
       </section>
 
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+      <section id="pet" className="py-24 px-6 overflow-hidden">
+        <div className="max-w-7xl mx-auto bg-slate-900 rounded-[3rem] p-8 md:p-16 relative">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-600/20 to-transparent pointer-events-none" />
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-                Почему выбирают Memora
+              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 text-white">
+                <Sparkles size={24} />
+              </div>
+              <h2 className="text-4xl font-bold text-white mb-6 tracking-tight">
+                Учитесь — и ваш <span className="text-blue-400">StudyPet</span> растёт
               </h2>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed">
-                Научно доказанный метод интервального повторения помогает запоминать 
-                информацию в 10 раз эффективнее традиционного обучения.
+              <p className="text-slate-400 text-lg mb-8 leading-relaxed">
+                Завершенные сессии начисляют XP вашему питомцу. Поддерживайте Streak, чтобы множить опыт и открывать уровни.
               </p>
-              <div className="space-y-4 sm:space-y-5">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start space-x-3 sm:space-x-4">
-                    <CheckCircle className="text-green-500 shrink-0 mt-0.5" size={20} />
-                    <span className="text-sm sm:text-base md:text-lg text-gray-700">{benefit}</span>
+              <div className="space-y-4">
+                {['Начисление опыта в реальном времени', 'Визуальный прогресс уровня', 'Мониторинг Streak-статуса'].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 text-white font-medium">
+                    <CheckCircle size={18} className="text-blue-400" />
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div>
-              <div className="bg-blue-600 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white shadow-2xl">
-                <div className="space-y-6 sm:space-y-8">
-                  <div className="flex items-center space-x-4 sm:space-x-5">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-                      <TrendingUp size={28} className="sm:w-8 sm:h-8" />
-                    </div>
-                    <div>
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-bold mb-1">+200%</div>
-                      <div className="text-blue-100 text-sm sm:text-base md:text-lg">Рост эффективности</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 sm:space-x-5">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-                      <BookOpen size={28} className="sm:w-8 sm:h-8" />
-                    </div>
-                    <div>
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-bold mb-1">20 мин</div>
-                      <div className="text-blue-100 text-sm sm:text-base md:text-lg">В день достаточно</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4 sm:space-x-5">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-                      <Target size={28} className="sm:w-8 sm:h-8" />
-                    </div>
-                    <div>
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-bold mb-1">90%</div>
-                      <div className="text-blue-100 text-sm sm:text-base md:text-lg">Долгосрочное запоминание</div>
-                    </div>
-                  </div>
-                </div>
+            <div className="relative flex justify-center">
+              <div className="w-64 h-64 bg-gradient-to-b from-blue-500 to-indigo-700 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(59,130,246,0.5)]">
+                 <Brain size={80} className="text-white opacity-80" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-12 sm:py-16 md:py-20 bg-blue-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
-            Начните учиться эффективнее уже сегодня
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl text-blue-100 mb-8 sm:mb-10 max-w-2xl mx-auto">
-            Присоединяйтесь к тысячам пользователей, которые уже улучшили свои результаты
-          </p>
-          <Link to="/register">
-            <Button className=" text-blue-600 hover:bg-blue-400 px-8 sm:px-10 py-4 sm:py-5 text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto">
-              Создать аккаунт 
-              <ArrowRight size={20} className="ml-2" />
-            </Button>
-          </Link>
-        </div>
+      <section className="py-24 text-center px-6">
+        <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tight text-slate-900">Готовы прокачать свой мозг?</h2>
+        <p className="text-slate-500 mb-10 max-w-xl mx-auto">Memora абсолютно бесплатна и не содержит рекламы. Начните обучение прямо сейчас.</p>
+        <Link to="/register">
+          <Button size="lg" className="h-16 px-12 rounded-2xl text-lg font-extrabold group">
+            Создать мой первый набор 
+            <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
       </section>
 
-      <footer className="bg-gray-900 text-gray-400 py-8 sm:py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="text-white" size={20} />
-              </div>
-              <span className="text-xl font-bold text-white">Memora</span>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-center">
-              <Link to="/faq" className="text-sm hover:text-white transition-colors">
-                FAQ
-              </Link>
-              <span className="text-xs sm:text-sm">© 2026 Memora. Все права защищены.</span>
-            </div>
+      <footer className="py-12 px-6 border-t border-slate-100 bg-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-slate-500">
+          <div className="flex items-center gap-2">
+            <Brain className="text-blue-600" size={24} />
+            <span className="font-black text-xl tracking-tighter text-slate-900">Memora</span>
+          </div>
+          <p className="text-sm">© 2026. Все права защищены.</p>
+          <div className="flex gap-8 text-sm font-bold uppercase tracking-widest text-[10px]">
+             <Link to="/faq" className="hover:text-blue-600 transition-colors">FAQ</Link>
           </div>
         </div>
       </footer>

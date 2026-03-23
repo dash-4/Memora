@@ -1,6 +1,6 @@
 import Card from '../../../components/cards/Card';
 import Button from '../../../components/ui/Button';
-import { Plus } from 'lucide-react';
+import { Plus, Search, Inbox, FilterX } from 'lucide-react';
 import CardItem from '../../../components/cards/CardItem'; 
 import { CardFilters } from '../../../components/cards/CardFilters';
 
@@ -17,65 +17,94 @@ export default function CardsList({
   const hasFilters = filters.search || filters.status;
 
   return (
-    <Card>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Карточки</h2>
-          {cards.length !== statsCards.length && (
-            <p className="text-sm text-gray-500 mt-1">
-              Показано {cards.length} из {statsCards.length} карточек
-            </p>
-          )}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-2">
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Карточки</h2>
+          <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+            {statsCards.length} всего
+          </span>
         </div>
-        <Button onClick={onCreateCard} className="w-full sm:w-auto">
-          <Plus size={20} className="mr-2" />
+        
+        <Button 
+          onClick={onCreateCard} 
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-6 py-3 shadow-lg shadow-blue-100 transition-all active:scale-95"
+        >
+          <Plus size={20} className="mr-2 stroke-[3px]" />
           Добавить карточку
         </Button>
       </div>
 
-      <CardFilters
-        filters={filters}
-        onFilterChange={onFilterChange}
-      />
+      <div className="bg-white border border-slate-100 rounded-[2.5rem] p-4 sm:p-8 shadow-sm">
+        <CardFilters
+          filters={filters}
+          onFilterChange={onFilterChange}
+        />
 
-      {cards.length > 0 ? (
-        <div className="space-y-3 mt-6">
-          {cards.map(card => (
-            <CardItem
-              key={card.id}
-              card={card}
-              onEdit={() => onEditCard(card)}
-              onDelete={() => onDeleteCard(card.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          {hasFilters ? (
-            <>
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+        {cards.length > 0 ? (
+          <div className="space-y-4 mt-8">
+            {cards.length !== statsCards.length && (
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-400 pb-2 px-1">
+                <Search size={14} />
+                Найдено {cards.length} из {statsCards.length}
               </div>
-              <p className="text-gray-500 mb-4">Карточки не найдены</p>
-              <Button variant="secondary" onClick={onResetFilters} className="w-full sm:w-auto">
-                Сбросить фильтры
-              </Button>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plus size={32} className="text-gray-400" />
+            )}
+            
+            <div className="grid gap-3">
+              {cards.map((card, index) => (
+                <div 
+                  key={card.id} 
+                  className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <CardItem
+                    card={card}
+                    onEdit={() => onEditCard(card)}
+                    onDelete={() => onDeleteCard(card.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            {hasFilters ? (
+              <div className="text-center max-w-xs animate-in zoom-in duration-300">
+                <div className="w-20 h-20 bg-amber-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-amber-500">
+                  <FilterX size={40} strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Ничего не нашли</h3>
+                <p className="text-slate-500 text-sm mb-8 font-medium leading-relaxed">
+                  Попробуйте изменить параметры поиска или сбросить фильтры
+                </p>
+                <Button 
+                  variant="secondary" 
+                  onClick={onResetFilters} 
+                  className="w-full rounded-2xl border-2 border-slate-100 hover:bg-slate-50"
+                >
+                  Сбросить всё
+                </Button>
               </div>
-              <p className="text-gray-500 mb-4">В колоде пока нет карточек</p>
-              <Button onClick={onCreateCard} className="w-full sm:w-auto">
-                Добавить первую карточку
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-    </Card>
+            ) : (
+              <div className="text-center max-w-xs animate-in zoom-in duration-300">
+                <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-blue-500">
+                  <Inbox size={40} strokeWidth={1.5} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Колода пуста</h3>
+                <p className="text-slate-500 text-sm mb-8 font-medium leading-relaxed">
+                  Самое время добавить первые знания. Начните с создания первой карточки!
+                </p>
+                <Button 
+                  onClick={onCreateCard} 
+                  className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100"
+                >
+                  Создать карточку
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

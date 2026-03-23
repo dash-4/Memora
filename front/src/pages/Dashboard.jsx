@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react"; 
 import { Link, useNavigate } from "react-router-dom";
 import {
   Calendar as CalendarIcon,
@@ -9,7 +9,6 @@ import {
   BarChart,
   Target,
   Zap,
-  ChevronRight,
   Flame,
   ArrowUpRight,
 } from "lucide-react";
@@ -27,6 +26,9 @@ export default function Dashboard() {
   const [scheduleData, setScheduleData] = useState([]);
   const [decksWithDueCards, setDecksWithDueCards] = useState([]);
   const [currentMonth] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  const isFetched = useRef(false);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -43,17 +45,27 @@ export default function Dashboard() {
 
       setStats(statsResponse.data);
       setScheduleData(scheduleResponse.data.schedule || []);
-      setDecksWithDueCards(
-        decksResponse.data.filter((deck) => deck.cards_due_today > 0)
-      );
+      
+      const dueDecks = Array.isArray(decksResponse.data) 
+        ? decksResponse.data.filter((deck) => deck.cards_due_today > 0)
+        : [];
+      setDecksWithDueCards(dueDecks);
+      
     } catch (err) {
-      toast.error("Не удалось загрузить данные");
-      console.log(err);
+      if (err.response?.status !== 429) {
+        toast.error("Не удалось загрузить данные дашборда");
+      }
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
     }
   }, [currentMonth]);
 
   useEffect(() => {
-    fetchDashboardData();
+    if (!isFetched.current) {
+      fetchDashboardData();
+      isFetched.current = true;
+    }
   }, [fetchDashboardData]);
 
   const handleStartStudying = (deckId) => {
@@ -74,22 +86,34 @@ export default function Dashboard() {
     orange: "bg-orange-50 text-orange-600 shadow-orange-100",
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex h-[60vh] items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-10">
+      <div className="space-y-10 p-4">
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Дашборд</h1>
             <p className="text-slate-500 mt-1">Твой личный прогресс обучения на сегодня</p>
           </div>
-          <div className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl">
-             <Flame size={18} />
-             <span>5 дней ударного режима!</span>
-          </div>
+          {stats?.streak > 0 && (
+            <div className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+               <Flame size={18} className="animate-pulse" />
+               <span>{stats.streak} дней ударного режима!</span>
+            </div>
+          )}
         </header>
 
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-5 bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          <div className="lg:col-span-5 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
             <StudyPet />
           </div>
 
@@ -117,7 +141,7 @@ export default function Dashboard() {
             </h2>
             
             {decksWithDueCards.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid gap-4">
                 {decksWithDueCards.map((deck) => (
                   <div
                     key={deck.id}
@@ -130,14 +154,14 @@ export default function Dashboard() {
                       >
                         <BookOpen size={22} style={{ color: deck.color || "#3B82F6" }} />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{deck.name}</h3>
-                        <p className="text-sm text-slate-500 font-medium">{deck.cards_due_today} карточек ждет тебя</p>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">{deck.name}</h3>
+                        <p className="text-sm text-slate-500 font-medium">{deck.cards_due_today} шт. ждет тебя</p>
                       </div>
                     </div>
                     <Button
                       onClick={() => handleStartStudying(deck.id)}
-                      className="rounded-xl bg-blue-600 hover:bg-indigo-600 text-white font-bold px-6 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 shadow-lg shadow-blue-100 transition-all active:scale-95 shrink-0"
                     >
                       Начать
                     </Button>
@@ -146,11 +170,9 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 py-12 text-center">
-                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                   <Target className="text-slate-300" size={32} />
-                </div>
+                <Target className="text-slate-300 mx-auto mb-4" size={42} />
                 <h3 className="text-lg font-bold text-slate-900">Всё чисто!</h3>
-                <p className="text-slate-500 max-w-xs mx-auto text-sm">Ты повторил все карточки на сегодня. Отдохни или добавь новые!</p>
+                <p className="text-slate-500 max-w-xs mx-auto text-sm mt-2">Ты всё повторил. Отдохни или добавь новые карточки.</p>
               </div>
             )}
 
@@ -178,7 +200,7 @@ export default function Dashboard() {
               График
             </h2>
             
-            <div className="bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm">
+            <div className="bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
               <Calendar
                 data={scheduleData}
                 onDayClick={() => navigate("/schedule")}
@@ -192,7 +214,7 @@ export default function Dashboard() {
                    Скоро в программе
                  </div>
                  <div className="space-y-4">
-                    {scheduleData.slice(0, 2).map((day, i) => (
+                    {scheduleData.length > 0 ? scheduleData.slice(0, 2).map((day, i) => (
                       <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
                          <div>
                             <p className="text-sm font-bold">{new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</p>
@@ -200,7 +222,9 @@ export default function Dashboard() {
                          </div>
                          <ArrowUpRight size={16} className="text-white/40" />
                       </div>
-                    ))}
+                    )) : (
+                      <p className="text-xs text-white/40">Планов пока нет</p>
+                    )}
                  </div>
                </div>
                <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl opacity-20"></div>

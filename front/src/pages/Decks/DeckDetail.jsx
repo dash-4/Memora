@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, Calendar, Dumbbell, Info, Clock, Sparkles, Link2, ClipboardList, RefreshCw } from 'lucide-react';
+import { AlertCircle, Calendar, Dumbbell, Info, Clock, Sparkles, Link2, ClipboardList, RefreshCw, ChevronRight } from 'lucide-react';
 import api from '@/services/api';
 import Layout from '@/components/layout/Layout';
 import CardModal from '@/components/cards/CardModal';
@@ -63,9 +63,6 @@ export default function DeckDetail() {
     fetchDeckDetails();
   }, [fetchDeckDetails]);
 
-  useEffect(() => {
-  }, []);
-
   const handleFilterChange = useCallback((key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
@@ -120,8 +117,10 @@ export default function DeckDetail() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-4 border-slate-100 border-t-blue-600 animate-spin" />
+          </div>
         </div>
       </Layout>
     );
@@ -130,10 +129,18 @@ export default function DeckDetail() {
   if (!deck) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-          <AlertCircle className="h-16 w-16 text-red-500 mb-6" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Колода не найдена</h2>
-          <Button onClick={() => navigate('/decks')}>Вернуться к списку колод</Button>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 max-w-md mx-auto">
+          <div className="p-4 bg-red-50 rounded-3xl mb-6">
+            <AlertCircle className="h-12 w-12 text-red-500" />
+          </div>
+          <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Колода не найдена</h2>
+          <Button 
+            variant="secondary"
+            onClick={() => navigate('/decks')}
+            className="rounded-2xl px-8 shadow-sm"
+          >
+            Вернуться к списку
+          </Button>
         </div>
       </Layout>
     );
@@ -143,205 +150,159 @@ export default function DeckDetail() {
   const cardsForLearning = statsCards.length;
   const newCardsCount = statsCards.filter((c) => !c.repetitions || c.repetitions === 0).length;
 
-
-
   return (
     <Layout>
-      <div className="space-y-6 sm:space-y-8 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 animate-in fade-in duration-500">
         <DeckHeader deck={deck} onDelete={handleDeleteDeck} />
 
         <DeckStats total={statsCards.length} dueToday={cardsForLearning} newCount={newCardsCount} />
 
-        <div className="bg-white border border-gray-200/70 rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 shadow-sm">
+        <div className="bg-gradient-to-br from-white to-slate-50/50 border border-slate-200/60 rounded-[2rem] p-6 shadow-sm ring-1 ring-black/[0.02]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <RefreshCw size={22} className="text-blue-600" />
+            <div className="flex items-center gap-5">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${studyReverse ? 'bg-blue-600 shadow-lg shadow-blue-200 rotate-180' : 'bg-white shadow-sm border border-slate-100'}`}>
+                <RefreshCw size={24} className={studyReverse ? 'text-white' : 'text-slate-400'} />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-base">Реверс (ответ → вопрос)</p>
-               
+                <p className="font-bold text-slate-900 text-lg leading-tight">Реверсивный режим</p>
+                <p className="text-slate-500 text-sm mt-1 font-medium">Поменять местами вопрос и ответ</p>
               </div>
             </div>
 
-            <label className="relative inline-flex items-center cursor-pointer">
+            <label className="relative inline-flex items-center cursor-pointer scale-110">
               <input
                 type="checkbox"
                 checked={studyReverse}
                 onChange={(e) => setStudyReverse(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="
-                w-14 h-7 bg-gray-200 rounded-full peer-focus:outline-none 
-                peer-focus:ring-4 peer-focus:ring-blue-300/50
-                peer peer-checked:after:translate-x-7 peer-checked:after:border-white
-                after:content-[''] after:absolute after:top-0.5 after:left-0.5 
-                after:bg-white after:border after:border-gray-300 after:rounded-full 
-                after:h-6 after:w-6 after:transition-all duration-300
-                peer-checked:bg-blue-600
-              "></div>
+              <div className="w-14 h-7 bg-slate-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-100 peer-checked:after:translate-x-7 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-[20px] after:w-[20px] after:transition-all after:shadow-sm duration-300 transition-colors"></div>
             </label>
           </div>
         </div>
 
         {statsCards.length === 0 && (
-          <div className="alert-info p-4 sm:p-5 rounded-xl">
-            <div className="flex items-start gap-3">
-              <Info className="text-blue-600 shrink-0 mt-0.5" size={20} />
+          <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-3xl animate-pulse">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <Info className="text-blue-600 shrink-0" size={24} />
+              </div>
               <div>
-                <h4 className="text-sm font-semibold mb-1">Как начать обучение?</h4>
-                <p className="text-sm opacity-90">
-                  Добавьте хотя бы одну карточку в колоду, и кнопка "Начать обучение" станет активной.
-                  Рекомендуем начать с 5-10 карточек.
+                <h4 className="text-blue-900 font-bold mb-1">Как начать обучение?</h4>
+                <p className="text-blue-700/80 text-sm font-medium leading-relaxed">
+                  Добавьте хотя бы одну карточку в колоду. Мы рекомендуем начинать с 5-10 штук для лучшего закрепления.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
-              title: 'Режим обучения',
+              title: 'Обучение',
               icon: Calendar,
               color: 'blue',
-              count: cardsForLearning,
-              extraCount: newCardsCount,
-              badgeActive: cardsForLearning > 0 ? 'Влияет на прогресс' : 'Добавьте карточки',
-              badgeColorActive: 'green',
-              desc: 'Повторяйте карточки по расписанию и оценивайте, насколько легко вспомнили. Алгоритм запомнит и покажет сложные карточки чаще.',
-              buttonText: 'Начать обучение',
-              buttonIcon: Sparkles,
+              badge: cardsForLearning > 0 ? 'Обучение' : 'Пусто',
+              desc: 'Алгоритм интервальных повторений для вечного запоминания.',
+              btn: 'Начать обучение',
+              iconBtn: Sparkles,
               path: 'learning',
-              condition: cardsForLearning > 0,
-              reverse: true,
+              active: cardsForLearning > 0,
             },
             {
-              title: 'Режим тренировки',
+              title: 'Тренировка',
               icon: Dumbbell,
               color: 'purple',
-              count: statsCards.length,
-              badgeActive: 'Свободный режим',
-              badgeColorActive: 'purple',
-              desc: 'Просто повторяйте карточки без оценок. Отлично для быстрого просмотра перед экзаменом или когда хотите освежить память.',
-              buttonText: 'Начать тренировку',
-              buttonIcon: Dumbbell,
+              badge: 'Без оценок',
+              desc: 'Быстрый просмотр всех карточек без влияния на статистику.',
+              btn: 'Тренироваться',
+              iconBtn: Dumbbell,
               path: 'practice',
-              condition: statsCards.length > 0,
-              reverse: true,
+              active: statsCards.length > 0,
             },
             {
               title: 'Подбор пар',
               icon: Link2,
               color: 'amber',
-              count: statsCards.length,
-              badgeActive: 'Игровой режим',
-              badgeColorActive: 'amber',
-              desc: 'Сопоставьте вопросы и ответы. Подходит для запоминания пар (слово — перевод, термин — определение).',
-              buttonText: 'Начать подбор',
-              buttonIcon: Link2,
+              badge: 'Игра',
+              desc: 'Соединяйте термины и определения на скорость.',
+              btn: 'Начать игру',
+              iconBtn: Link2,
               path: 'matching',
-              condition: statsCards.length >= 2,
-              reverse: true,
+              active: statsCards.length >= 2,
             },
             {
               title: 'Тест',
               icon: ClipboardList,
               color: 'emerald',
-              count: statsCards.length,
-              badgeActive: 'Тест / экзамен',
-              badgeColorActive: 'emerald',
-              desc: 'Выберите правильный ответ из вариантов. Удобно для самопроверки перед экзаменом или зачётом.',
-              buttonText: 'Начать тест',
-              buttonIcon: ClipboardList,
+              badge: 'Экзамен',
+              desc: 'Проверка знаний с выбором вариантов ответа.',
+              btn: 'Запустить тест',
+              iconBtn: ClipboardList,
               path: 'test',
-              condition: statsCards.length > 0,
-              reverse: true,
+              active: statsCards.length > 0,
             },
           ].map((mode) => {
-            const active = mode.condition;
-            const color = mode.color;
-
+            const colorClass = mode.active ? mode.color : 'gray';
+            
             return (
               <div
                 key={mode.title}
-                className={`
-                  flex flex-col h-full
-                  bg-white rounded-2xl border border-gray-200/80
-                  overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group
-                  ${active ? `hover:border-${color}-300/60` : 'hover:border-gray-300'}
-                `}
+                className={`group relative flex flex-col bg-white rounded-[2.5rem] border border-slate-200/60 p-8 transition-all duration-300 hover:-translate-y-1 ${
+                  mode.active ? 'hover:shadow-2xl hover:shadow-slate-200/50 hover:border-blue-200' : 'opacity-80'
+                }`}
               >
-                <div className="p-6 lg:p-7 flex flex-col flex-1">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className={`
-                      w-14 h-14 rounded-xl flex items-center justify-center transition-transform duration-300
-                      ${active ? `bg-${color}-50 group-hover:bg-${color}-100` : 'bg-gray-50'}
-                      group-hover:scale-105
-                    `}>
-                      <mode.icon size={26} className={active ? `text-${color}-600` : 'text-gray-400'} />
-                    </div>
-
-                    <span className={`
-                      px-4 py-1.5 rounded-full text-xs font-medium tracking-tight
-                      ${active
-                        ? `bg-${mode.badgeColorActive || color}-50 text-${mode.badgeColorActive || color}-700`
-                        : 'bg-gray-100 text-gray-600'
-                      }
-                    `}>
-                      {active ? mode.badgeActive : 'Добавьте карточки'}
-                    </span>
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors duration-300 ${
+                    mode.active ? `bg-${mode.color}-50 group-hover:bg-${mode.color}- group-hover:text-white` : 'bg-slate-50'
+                  }`}>
+                    <mode.icon size={28} className={`duration-600 transition-all ${
+                      mode.active ? `text-${mode.color}-600 group-hover:text-black` : 'text-slate-300'
+                    }`} />
                   </div>
-
-                  <h3 className={`
-                    text-xl font-bold mb-3 transition-colors duration-200
-                    ${active ? `group-hover:text-${color}-700` : 'text-gray-900'}
-                  `}>
-                    {mode.title}
-                  </h3>
-
-                  <p className="text-gray-600 text-sm mb-6 leading-relaxed flex-grow">
-                    {mode.desc}
-                  </p>
-
-                  
-
-                  <div className="mt-auto">
-                    {active ? (
-                      <Button
-                        className={`
-                          w-full py-3.5 rounded-xl font-medium text-base
-                          border-2 transition-all duration-300
-                          border-${color}-500/70 text-${color}-700
-                          hover:bg-${color}-50/70 hover:border-${color}-500 hover:shadow-md
-                        `}
-                        onClick={() => navigate(`/study?deck=${id}&mode=${mode.path}${mode.reverse && studyReverse ? '&reverse=1' : ''}`)}
-                      >
-                        <mode.buttonIcon size={18} className="mr-2.5" />
-                        {mode.buttonText}
-                      </Button>
-                    ) : (
-                      <div className="text-center py-4 bg-gray-50/80 border border-gray-200/70 rounded-xl text-sm text-gray-600">
-                        Добавьте карточки
-                      </div>
-                    )}
-                  </div>
+                  <span className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${
+                    mode.active ? `bg-${mode.color}-50 text-${mode.color}-600` : 'bg-slate-100 text-slate-400'
+                  }`}>
+                    {mode.badge}
+                  </span>
                 </div>
+
+                <h3 className="text-xl font-black text-slate-900 mb-2">{mode.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-8 flex-grow font-medium">
+                  {mode.desc}
+                </p>
+
+                {mode.active ? (
+                  <button
+                    onClick={() => navigate(`/study?deck=${id}&mode=${mode.path}${studyReverse ? '&reverse=1' : ''}`)}
+                    className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center transition-all bg-blue-700 text-white hover:bg-black hover:shadow-lg active:scale-[0.98]`}
+                  >
+                    <mode.iconBtn size={18} className="mr-2" />
+                    {mode.btn}
+                  </button>
+                ) : (
+                  <div className="w-full py-4 rounded-2xl bg-slate-50 text-slate-400 text-xs font-bold text-center border border-dashed border-slate-200">
+                    Недостаточно карточек
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
-        <CardsList
-          cards={cards}
-          statsCards={statsCards}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onCreateCard={handleCreateCard}
-          onEditCard={handleEditCard}
-          onDeleteCard={handleDeleteCard}
-          onResetFilters={() => setFilters({ search: '', status: '' })}
-        />
+        <div className="pt-4">
+          <CardsList
+            cards={cards}
+            statsCards={statsCards}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onCreateCard={handleCreateCard}
+            onEditCard={handleEditCard}
+            onDeleteCard={handleDeleteCard}
+            onResetFilters={() => setFilters({ search: '', status: '' })}
+          />
+        </div>
       </div>
 
       {showCardModal && (

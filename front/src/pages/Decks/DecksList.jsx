@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
-import { Plus, Search as SearchIcon, BookOpen, Menu, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Menu, X, FolderPlus, Layers } from "lucide-react";
 import api from "@/services/api";
 import Layout from "@/components/layout/Layout";
-import Card from "@/components/cards/Card";
 import Button from "@/components/ui/Button";
 import DeckCard from "@/components/decks/DeckCard";
 import FolderSidebar from "@/components/folders/FolderSidebar";
@@ -26,44 +25,26 @@ export default function DecksList() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("recent");
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
   const [showCreateDeckModal, setShowCreateDeckModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    fetchFoldersTree();
-    fetchAllDecks();
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-  useEffect(() => {
-    if (selectedFolderId) {
-      fetchFolderContents(selectedFolderId);
-    } else {
-      fetchAllDecks();
-    }
-  }, [selectedFolderId]);
-
-  useEffect(() => {
-    applyFilters();
-  }, [decks, debouncedSearch, sortBy]);
-
-  const fetchFoldersTree = async () => {
+  const fetchFoldersTree = useCallback(async () => {
     try {
       const { data } = await api.get("/folders/tree/");
       setFolders(data);
     } catch (err) {
       toast.error("Ошибка загрузки папок");
-      console.error(err);
     }
-  };
+  }, []);
 
-  const fetchAllDecks = async () => {
+  const fetchAllDecks = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get("/decks/");
@@ -72,13 +53,12 @@ export default function DecksList() {
       setSubfolders([]);
     } catch (err) {
       toast.error("Ошибка загрузки колод");
-      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchFolderContents = async (id) => {
+  const fetchFolderContents = useCallback(async (id) => {
     setLoading(true);
     try {
       const { data } = await api.get(`/folders/${id}/contents/`);
@@ -86,77 +66,42 @@ export default function DecksList() {
       setSubfolders(data.subfolders || []);
       setDecks(data.decks || []);
     } catch (err) {
-      toast.error("Ошибка загрузки содержимого папки");
-      console.error(err);
+      toast.error("Ошибка содержимого папки");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const applyFilters = () => {
+  useEffect(() => {
+    fetchFoldersTree();
+  }, [fetchFoldersTree]);
+
+  useEffect(() => {
+    if (selectedFolderId) fetchFolderContents(selectedFolderId);
+    else fetchAllDecks();
+  }, [selectedFolderId, fetchFolderContents, fetchAllDecks]);
+
+  useEffect(() => {
     let result = [...decks];
-
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
-      result = result.filter(
-        (d) =>
-          d.name.toLowerCase().includes(q) ||
-          (d.description && d.description.toLowerCase().includes(q)),
+      result = result.filter(d => 
+        d.name.toLowerCase().includes(q) || 
+        d.description?.toLowerCase().includes(q)
       );
     }
-
-    switch (sortBy) {
-      case "name":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "cards":
-        result.sort((a, b) => (b.total_cards || 0) - (a.total_cards || 0));
-        break;
-      case "due":
-        result.sort(
-          (a, b) => (b.cards_due_today || 0) - (a.cards_due_today || 0),
-        );
-        break;
-      default:
-        result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    }
-
     setFilteredDecks(result);
-  };
-
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSortBy("recent");
-  };
+  }, [decks, debouncedSearch, sortBy]);
 
   const handleFolderSelect = (id) => {
     setSelectedFolderId(id);
     setIsSidebarOpen(false);
   };
 
-  const handleDeleteFolder = async (id) => {
-    if (
-      !window.confirm(
-        "Удалить папку? Все вложенные колоды останутся без папки.",
-      )
-    )
-      return;
-    try {
-      await api.delete(`/folders/${id}/`);
-      if (selectedFolderId === id) {
-        setSelectedFolderId(null);
-      }
-      fetchFoldersTree();
-    } catch {
-      toast.error("Не удалось удалить папку");
-    }
-  };
-
-  const handleToggleExpand = (id) => {
-    setExpandedFolders((prev) => {
+  const toggleFolderExpand = (id) => {
+    setExpandedFolders(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
@@ -164,131 +109,94 @@ export default function DecksList() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex h-screen">
-          <div className="hidden lg:block">
-            <FolderSidebar
-              folders={folders}
-              selectedFolderId={selectedFolderId}
-              onFolderSelect={handleFolderSelect}
-              onCreateFolder={() => setShowCreateFolderModal(true)}
-              expandedFolders={expandedFolders}
-              onToggleExpand={handleToggleExpand}
-              onDeleteFolder={handleDeleteFolder}
-            />
-          </div>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-          </div>
+        <div className="flex h-screen items-center justify-center bg-[#FAFBFF]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
         </div>
       </Layout>
     );
   }
 
-  const showDecks = filteredDecks.length > 0;
-
   return (
     <Layout>
-      <div className="flex h-screen overflow-hidden">
-        <div className="hidden lg:block">
-          <FolderSidebar
-            folders={folders}
-            selectedFolderId={selectedFolderId}
-            onFolderSelect={handleFolderSelect}
-            onCreateFolder={() => setShowCreateFolderModal(true)}
-            expandedFolders={expandedFolders}
-            onToggleExpand={handleToggleExpand}
-            onDeleteFolder={handleDeleteFolder}
-          />
-        </div>
-
-        {isSidebarOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-              onClick={() => setIsSidebarOpen(false)}
+      <div className="flex h-[calc(100vh-theme(spacing.16))] lg:h-[calc(100vh-theme(spacing.20))]  bg-[#FAFBFF]">
+        
+        <aside className="hidden lg:block w-72 h-full flex-shrink-0 border-r border-slate-200/60 bg-white/50 backdrop-blur-md">
+          <div className="h-full ">
+            <FolderSidebar
+              folders={folders}
+              selectedFolderId={selectedFolderId}
+              onFolderSelect={handleFolderSelect}
+              expandedFolders={expandedFolders}
+              onToggleExpand={toggleFolderExpand}
+              onCreateFolder={() => setShowCreateFolderModal(true)}
             />
-            <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
-              <div className="h-full bg-white shadow-xl">
-                <div className="flex items-center justify-between p-4 border-b">
-                  <h2 className="text-lg font-bold text-gray-900">Папки</h2>
-                  <button
-                    onClick={() => setIsSidebarOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                <FolderSidebar
-                  folders={folders}
-                  selectedFolderId={selectedFolderId}
-                  onFolderSelect={handleFolderSelect}
-                  onCreateFolder={() => {
-                    setShowCreateFolderModal(true);
-                    setIsSidebarOpen(false);
-                  }}
-                  expandedFolders={expandedFolders}
-                  onToggleExpand={handleToggleExpand}
-                  onDeleteFolder={handleDeleteFolder}
+          </div>
+        </aside>
+
+        <main className="flex-1 relative">
+          <div className="max-w-6xl mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
+            
+            <div className="flex items-center justify-between">
+              <div className="overflow-x-auto scrollbar-hide whitespace-nowrap mr-4">
+                <FolderBreadcrumbs
+                  breadcrumbs={currentFolder?.breadcrumbs || []}
+                  onNavigate={handleFolderSelect}
                 />
               </div>
-            </div>
-          </>
-        )}
-
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-            <div className="lg:hidden">
-              <Button
-                variant="secondary"
+              <button
+                className="lg:hidden p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 shadow-sm active:scale-95 transition-transform"
                 onClick={() => setIsSidebarOpen(true)}
-                className="w-full mb-4"
               >
-                <Menu size={20} className="mr-2" />
-                Открыть папки
-              </Button>
+                <Menu size={22} />
+              </button>
             </div>
 
-            <FolderBreadcrumbs
-              breadcrumbs={currentFolder?.breadcrumbs || []}
-              onNavigate={handleFolderSelect}
-            />
-
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="w-full sm:w-auto">
-                <h1 className="heading-page">
-                  {currentFolder ? currentFolder.name : "Все колоды"}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+              <div className="space-y-1">
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                  {currentFolder ? currentFolder.name : "Библиотека"}
                 </h1>
-                <p className="text-muted mt-1 text-sm sm:text-base"> {currentFolder ? currentFolder.description : ''}</p>
+                {currentFolder?.description && (
+                  <p className="text-slate-500 font-medium max-w-xl">{currentFolder.description}</p>
+                )}
               </div>
 
-              <div className="flex gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateFolderModal(true)}
+                  className="flex-1 sm:flex-none rounded-2xl border-slate-200 font-bold py-6 sm:py-2"
+                >
+                  <FolderPlus size={18} className="sm:mr-2" />
+                  <span className="hidden sm:inline">Папка</span>
+                </Button>
                 <Button
                   onClick={() => setShowCreateDeckModal(true)}
-                  className="flex-1 sm:flex-none"
-                  size="sm"
+                  className="flex-[2] sm:flex-none rounded-2xl  font-bold px-4 md:px-4 py-2 sm:py-2 shadow-lg shadow-blue-100"
                 >
-                  <Plus size={18} className="sm:mr-2" />
-                  <span className="hidden sm:inline">Колода</span>
+                  <Plus size={20} className="sm:mr-2" />
+                  Новая колода
                 </Button>
               </div>
             </div>
 
-            <Card>
+            <div className="">
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 sortBy={sortBy}
                 onSortChange={setSortBy}
-                onClear={clearFilters}
+                onClear={() => setSearchQuery("")}
               />
-            </Card>
+            </div>
 
             {subfolders.length > 0 && (
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
-                  Папки ({subfolders.length})
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Папки</h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
                   {subfolders.map((folder) => (
                     <FolderCard
                       key={folder.id}
@@ -297,70 +205,68 @@ export default function DecksList() {
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
-                Колоды {showDecks ? `(${filteredDecks.length})` : ""}
-              </h2>
+            <section className="animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
+              <div className="flex items-center gap-2 mb-6 px-1">
+                <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">
+                  Колоды {filteredDecks.length > 0 && `(${filteredDecks.length})`}
+                </h2>
+              </div>
 
-              {showDecks ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              {filteredDecks.length > 0 ? (
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
                   {filteredDecks.map((deck) => (
                     <DeckCard key={deck.id} deck={deck} />
                   ))}
                 </div>
               ) : (
-                <Card className="text-center py-10 sm:py-12">
-                  {searchQuery || sortBy !== "recent" ? (
-                    <>
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <SearchIcon
-                          size={28}
-                          className="text-gray-400 sm:w-8 sm:h-8"
-                        />
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                        Колоды не найдены
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 mb-6">
-                        Попробуйте изменить параметры поиска
-                      </p>
-                      <Button
-                        variant="secondary"
-                        onClick={clearFilters}
-                        size="sm"
-                      >
-                        Сбросить фильтры
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <BookOpen
-                        size={40}
-                        className="mx-auto text-gray-400 mb-4 sm:w-12 sm:h-12"
-                      />
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                        Нет колод
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 mb-6">
-                        Создайте свою первую колоду
-                      </p>
-                      <Button
-                        onClick={() => setShowCreateDeckModal(true)}
-                        size="sm"
-                      >
-                        Создать колоду
-                      </Button>
-                    </>
+                <div className="bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-200 py-16 md:py-24 text-center px-4">
+                  <div className="bg-white w-16 h-16 md:w-20 md:h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm text-slate-200">
+                    <Layers size={32} />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-bold text-slate-900">Пусто</h3>
+                  <p className="text-slate-500 text-sm md:text-base max-w-xs mx-auto mt-2 mb-8">
+                    {searchQuery ? "По вашему запросу ничего не нашлось" : "Начните с создания первой колоды"}
+                  </p>
+                  {searchQuery && (
+                    <Button variant="outline" onClick={() => setSearchQuery("")} className="rounded-xl">
+                      Сбросить фильтры
+                    </Button>
                   )}
-                </Card>
+                </div>
               )}
+            </section>
+          </div>
+        </main>
+      </div>
+
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsSidebarOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-[85%] max-w-sm bg-white shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-slate-50">
+              <h2 className="text-xl font-black text-slate-900">Навигация</h2>
+              <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-slate-400"><X size={24}/></button>
+            </div>
+            <div className="h-[calc(100%-80px)] overflow-y-auto scrollbar-hide">
+              <FolderSidebar
+                folders={folders}
+                selectedFolderId={selectedFolderId}
+                onFolderSelect={handleFolderSelect}
+                expandedFolders={expandedFolders}
+                onToggleExpand={toggleFolderExpand}
+                onCreateFolder={() => {
+                  setIsSidebarOpen(false);
+                  setShowCreateFolderModal(true);
+                }}
+              />
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {showCreateFolderModal && (
         <CreateFolderModal
@@ -380,8 +286,7 @@ export default function DecksList() {
           onClose={() => setShowCreateDeckModal(false)}
           onSuccess={() => {
             setShowCreateDeckModal(false);
-            if (selectedFolderId) fetchFolderContents(selectedFolderId);
-            else fetchAllDecks();
+            selectedFolderId ? fetchFolderContents(selectedFolderId) : fetchAllDecks();
             fetchFoldersTree();
           }}
         />

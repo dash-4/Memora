@@ -1,4 +1,4 @@
-import { Plus, Folder, Trash2 } from 'lucide-react';
+import { Plus, Folder, Trash2, Layers } from 'lucide-react';
 import FolderTree from './FolderTree';
 
 export default function FolderSidebar({
@@ -11,41 +11,34 @@ export default function FolderSidebar({
   onDeleteFolder,
 }) {
   return (
-    <div className="w-72 bg-white border-r border-gray-200 h-full overflow-y-auto flex-shrink-0 shadow-sm">
-      <div className="p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Папки</h2>
-          <button
-            onClick={onCreateFolder}
-            className="p-2.5 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
-            title="Создать новую папку"
-            aria-label="Создать папку"
-          >
-            <Plus className="w-6 h-6 text-gray-600 group-hover:text-blue-600 group-hover:scale-110 transition-transform" />
-          </button>
-        </div>
+    <div className="w-72 bg-white/50 backdrop-blur-md h-full overflow-y-auto scrollbar-hide flex-shrink-0 border-r border-slate-200/60">
+      <div className="p-6 sticky top-0 bg-white/80 backdrop-blur-md z-10">
+       
 
         <button
           onClick={() => onFolderSelect(null)}
           className={`
-            w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-base font-medium
+            w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 text-sm font-bold
             ${
               selectedFolderId === null
-                ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-200'
-                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                ? ' text-black shadow-lg shadow-blue-200'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }
           `}
         >
-          <Folder 
-            className={`w-5 h-5 ${selectedFolderId === null ? 'text-blue-600' : 'text-gray-500'}`} 
+          <Layers 
+            className={`w-4 h-4 ${selectedFolderId === null ? 'text-black' : 'text-slate-400'}`} 
           />
           Все колоды
         </button>
       </div>
 
-      <div className="p-3">
+      <div className="px-4 pb-10">
         {folders?.length > 0 ? (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
+            <div className="px-2 mb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">Мои папки</span>
+            </div>
             {folders.map(folder => (
               <FolderTree
                 key={folder.id}
@@ -60,12 +53,17 @@ export default function FolderSidebar({
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 px-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-            <Folder className="w-14 h-14 mx-auto text-gray-300 mb-4" />
-            <p className="text-base font-medium text-gray-700">Папок пока нет</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Нажмите + чтобы создать первую
-            </p>
+          <div className="mt-4 p-8 text-center bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100">
+            <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4">
+              <Folder className="w-6 h-6 text-slate-300" />
+            </div>
+            <p className="text-sm font-bold text-slate-400">Папок нет</p>
+            <button 
+              onClick={onCreateFolder}
+              className="mt-4 text-xs font-black uppercase tracking-widest text-blue-600 hover:text-indigo-600 transition-colors"
+            >
+              Создать +
+            </button>
           </div>
         )}
       </div>

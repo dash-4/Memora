@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -10,6 +10,8 @@ import {
   Clock,
   Zap,
   BarChart3,
+  ChevronRight,
+  Flame,
 } from "lucide-react";
 import api from "@/services/api";
 import Card from "@/components/cards/Card";
@@ -22,11 +24,7 @@ export default function Statistics() {
   const [decksStats, setDecksStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStatistics();
-  }, []);
-
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     try {
       const [statsResponse, decksResponse] = await Promise.all([
         api.get("/statistics/dashboard/"),
@@ -37,32 +35,28 @@ export default function Statistics() {
       setDecksStats(decksResponse.data);
     } catch (err) {
       toast.error("Ошибка загрузки статистики");
-      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
 
   const getMasteryLevel = (deck) => {
     const p = deck.mastery_percent;
-
-    if (p >= 80) return { label: "Отлично", color: "green" };
-    if (p >= 60) return { label: "Хорошо", color: "blue" };
-    if (p >= 40) return { label: "Средне", color: "yellow" };
-    if (p >= 20) return { label: "Слабо", color: "orange" };
-
-    if (p < 20 && deck.learning_cards > 0) {
-      return { label: "В процессе", color: "orange" };
-    }
-
-    return { label: "Начало", color: "red" };
+    if (p >= 80) return { label: "Мастер", color: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50" };
+    if (p >= 60) return { label: "Знаток", color: "bg-blue-500", text: "text-blue-700", bg: "bg-blue-50" };
+    if (p >= 40) return { label: "Ученик", color: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50" };
+    return { label: "Новичок", color: "bg-slate-400", text: "text-slate-600", bg: "bg-slate-50" };
   };
 
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600" />
         </div>
       </Layout>
     );
@@ -74,280 +68,152 @@ export default function Statistics() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-            <BarChart3 className="text-purple-600" size={24} />
-          </div>
-          <div>
-            <h1 className="heading-page">
-              Статистика
-            </h1>
-            <p className="text-sm text-gray-600">
-              Ваш прогресс и достижения
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm text-gray-600">Всего изучено</p>
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                  <BookOpen className="text-blue-600" size={20} />
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {stats?.cards_learned || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">карточек</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm text-gray-600">Текущий streak</p>
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Zap className="text-orange-600" size={20} />
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-bold text-orange-600">
-                  {stats?.progress?.current_streak || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">дней подряд</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="border-l-4 border-green-500 hover:shadow-lg transition-shadow">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm text-gray-600">Лучший streak</p>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Award className="text-green-600" size={20} />
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                  {stats?.progress?.longest_streak || 0}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">дней</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs sm:text-sm text-gray-600">Уровень</p>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
-                  <TrendingUp className="text-purple-600" size={20} />
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-bold text-purple-600">
-                  {stats?.progress?.level || 1}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats?.progress?.points || 0} очков
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        <Card>
-          <div className="p-5 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-5">
-              Активность за неделю
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-100 hover:border-blue-200 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
-                    <CheckCircle className="text-white" size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                      Изучено карточек
-                    </p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {stats?.study?.cards_studied_this_week || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-green-50 rounded-xl border-2 border-green-100 hover:border-green-200 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center shrink-0">
-                    <Calendar className="text-white" size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                      Сессий обучения
-                    </p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {stats?.study?.sessions_this_week || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-purple-50 rounded-xl border-2 border-purple-100 hover:border-purple-200 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center shrink-0">
-                    <Target className="text-white" size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                      В среднем в день
-                    </p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {avgCardsPerDay}
-                    </p>
-                  </div>
-                </div>
-              </div>
+      <div className="bg-[#FAFBFF] ">
+        <main className="  p-4 md:p-8 space-y-8">
+          
+          <div className="flex items-center gap-4">
+            
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Твой Прогресс</h1>
+              <p className="text-slate-500 font-medium text-sm">Аналитика обучения и личные рекорды</p>
             </div>
           </div>
-        </Card>
 
-        <Card>
-          <div className="p-5 sm:p-6">
-            <div className="mb-5">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                Прогресс по колодам
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "Изучено", val: stats?.cards_learned, unit: "карточек", icon: BookOpen, color: "blue" },
+              { label: "Ударный режим", val: stats?.progress?.current_streak, unit: "дней", icon: Flame, color: "orange", highlight: true },
+              { label: "Рекорд", val: stats?.progress?.longest_streak, unit: "дней", icon: Award, color: "emerald" },
+              { label: "Уровень", val: stats?.progress?.level, unit: `${stats?.progress?.points || 0} XP`, icon: TrendingUp, color: "purple" }
+            ].map((s, i) => (
+              <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-3 rounded-xl bg-${s.color}-50 text-${s.color}-600`}>
+                    <s.icon size={22} />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{s.label}</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-3xl font-black ${s.highlight ? 'text-orange-500' : 'text-slate-900'}`}>
+                    {s.val || 0}
+                  </span>
+                  <span className="text-xs font-bold text-slate-400 uppercase">{s.unit}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl overflow-hidden relative">
+            <div className="relative z-10">
+              <h2 className="text-xl font-black mb-6 flex items-center gap-2">
+                <Zap className="text-yellow-400" fill="currentColor" size={20} />
+                Активность за неделю
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Освоенные: интервал 10+ дней или 3+ повторения
-              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                  <p className="text-white/60 text-xs font-bold uppercase mb-1">Всего сессий</p>
+                  <p className="text-3xl font-black">{stats?.study?.sessions_this_week || 0}</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                  <p className="text-white/60 text-xs font-bold uppercase mb-1">Карточек пройдено</p>
+                  <p className="text-3xl font-black">{stats?.study?.cards_studied_this_week || 0}</p>
+                </div>
+                <div className="bg-blue-500 rounded-2xl p-6 shadow-lg shadow-blue-500/20">
+                  <p className="text-white/80 text-xs font-bold uppercase mb-1">Среднее в день</p>
+                  <p className="text-3xl font-black">{avgCardsPerDay}</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Прогресс по колодам</h2>
+              <span className="text-xs font-bold text-slate-400 uppercase">Освоение материала</span>
             </div>
 
             {decksStats.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
                 {decksStats.map((deck) => {
-                  const masteryLevel = getMasteryLevel(deck);
-
+                  const level = getMasteryLevel(deck);
                   return (
-                    <div
-                      key={deck.id}
-                      className="p-4 sm:p-5 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all"
-                    >
-                      <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-4">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
+                    <div key={deck.id} className="bg-white rounded-[2rem] border border-slate-100 p-6 hover:shadow-lg hover:shadow-slate-200/50 transition-all group">
+                      <div className="flex flex-col md:flex-row md:items-center gap-6">
+                        {/* Deck Icon & Name */}
+                        <div className="flex items-center gap-4 min-w-[240px]">
+                          <div 
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner"
                             style={{ backgroundColor: deck.color || "#6366f1" }}
                           >
-                            <BookOpen size={20} className="text-white" />
+                            <BookOpen size={24} className="text-white" />
                           </div>
                           <div className="min-w-0">
-                            <h3 className="font-bold text-gray-900 truncate text-sm sm:text-base">
+                            <h3 className="font-black text-slate-900 truncate group-hover:text-blue-600 transition-colors">
                               {deck.name}
                             </h3>
-                            <p className="text-xs sm:text-sm text-gray-500">
-                              {deck.mastered_cards} из {deck.total_cards} освоено
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+                              {deck.mastered_cards} / {deck.total_cards} изучено
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              masteryLevel.color === "green"
-                                ? "bg-green-100 text-green-700"
-                                : masteryLevel.color === "blue"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : masteryLevel.color === "yellow"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : masteryLevel.color === "orange"
-                                      ? "bg-orange-100 text-orange-700"
-                                      : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            {masteryLevel.label} · {deck.mastery_percent}%
-                          </span>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter text-slate-400 px-1">
+                            <span>Прогресс</span>
+                            <span>{deck.mastery_percent}%</span>
+                          </div>
+                          <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-1000 ${level.color}`}
+                              style={{ width: `${deck.mastery_percent}%` }}
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mb-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className={`h-2.5 rounded-full transition-all duration-500 ${
-                              masteryLevel.color === "green"
-                                ? "bg-green-500"
-                                : masteryLevel.color === "blue"
-                                  ? "bg-blue-500"
-                                  : masteryLevel.color === "yellow"
-                                    ? "bg-yellow-500"
-                                    : masteryLevel.color === "orange"
-                                      ? "bg-orange-500"
-                                      : "bg-red-500"
-                            }`}
-                            style={{ width: `${deck.mastery_percent}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center flex-wrap gap-3 text-xs sm:text-sm">
-                          <div className="flex items-center text-green-600 font-medium">
-                            <CheckCircle size={16} className="mr-1 shrink-0" />
-                            <span>{deck.mastered_cards}</span>
+                        <div className="flex items-center gap-4 justify-between md:justify-end min-w-[180px]">
+                          <div className={`px-4 py-2 rounded-xl ${level.bg} ${level.text} text-xs font-black uppercase tracking-widest`}>
+                            {level.label}
                           </div>
-                          <div className="flex items-center text-blue-600 font-medium">
-                            <Clock size={16} className="mr-1 shrink-0" />
-                            <span>{deck.learning_cards || 0}</span>
-                          </div>
-                          <div className="flex items-center text-orange-600 font-medium">
-                            <Calendar size={16} className="mr-1 shrink-0" />
-                            <span>{deck.cards_due_today}</span>
-                          </div>
-                          {deck.new_cards > 0 && (
-                            <div className="flex items-center text-gray-500 font-medium">
-                              <Zap size={16} className="mr-1 shrink-0" />
-                              <span>{deck.new_cards}</span>
+                          <Link to={`/decks/${deck.id}`}>
+                            <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                              <ChevronRight size={20} />
                             </div>
-                          )}
+                          </Link>
                         </div>
+                      </div>
 
-                        <Link to={`/decks/${deck.id}`} className="w-full sm:w-auto">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="w-full sm:w-auto"
-                          >
-                            Открыть
-                          </Button>
-                        </Link>
+                      <div className="mt-6 pt-6 border-t border-slate-50 flex flex-wrap gap-6">
+                         {[
+                           { icon: CheckCircle, val: deck.mastered_cards, color: "text-emerald-500", label: "Освоено" },
+                           { icon: Clock, val: deck.learning_cards, color: "text-blue-500", label: "В изучении" },
+                           { icon: Calendar, val: deck.cards_due_today, color: "text-orange-500", label: "К повтору" }
+                         ].map((item, idx) => (
+                           <div key={idx} className="flex items-center gap-2">
+                             <item.icon size={14} className={item.color} />
+                             <span className="text-xs font-black text-slate-700">{item.val || 0}</span>
+                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{item.label}</span>
+                           </div>
+                         ))}
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Нет колод
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Создайте колоду, чтобы начать обучение
-                </p>
+              <div className="bg-white rounded-[3rem] border-2 border-dashed border-slate-200 py-16 text-center">
+                <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                  <Target size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Пока нет данных</h3>
+                <p className="text-slate-500 text-sm mb-6">Начни учить любую колоду, чтобы увидеть статистику</p>
                 <Link to="/decks">
-                  <Button>Создать колоду</Button>
+                  <Button className="rounded-2xl px-8">Перейти к колодам</Button>
                 </Link>
               </div>
             )}
           </div>
-        </Card>
+        </main>
       </div>
     </Layout>
   );

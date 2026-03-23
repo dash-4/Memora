@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import { useState } from "react";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#FAFBFF] flex flex-col font-sans">
       <Header onMenuClick={() => setSidebarOpen(true)} />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 max-w-[1440px] mx-auto w-full relative">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto px-4 sm:px-4 lg:px-4 py-4 sm:py-4 lg:py-4 max-w-7xl">
+        <main className="flex-1 min-w-0">
+          <div className="p-4 sm:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
             {children}
           </div>
         </main>
@@ -21,7 +21,7 @@ export default function Layout({ children }) {
 
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />

@@ -11,9 +11,9 @@ import {
   Zap,
   ChevronRight,
   Flame,
+  ArrowUpRight,
 } from "lucide-react";
 import api from "@/services/api";
-import Card from "@/components/cards/Card";
 import Button from "@/components/ui/Button";
 import Layout from "@/components/layout/Layout";
 import Calendar from "@/components/schedule/Calendar";
@@ -30,25 +30,24 @@ export default function Dashboard() {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      const [statsResponse, scheduleResponse, decksResponse] =
-        await Promise.all([
-          api.get("/study/stats/"),
-          api.get("/study/schedule/", {
-            params: {
-              year: currentMonth.getFullYear(),
-              month: currentMonth.getMonth() + 1,
-            },
-          }),
-          api.get("/statistics/decks_progress/"),
-        ]);
+      const [statsResponse, scheduleResponse, decksResponse] = await Promise.all([
+        api.get("/study/stats/"),
+        api.get("/study/schedule/", {
+          params: {
+            year: currentMonth.getFullYear(),
+            month: currentMonth.getMonth() + 1,
+          },
+        }),
+        api.get("/statistics/decks_progress/"),
+      ]);
 
       setStats(statsResponse.data);
       setScheduleData(scheduleResponse.data.schedule || []);
       setDecksWithDueCards(
-        decksResponse.data.filter((deck) => deck.cards_due_today > 0),
+        decksResponse.data.filter((deck) => deck.cards_due_today > 0)
       );
     } catch (err) {
-      toast.error("Не удалось загрузить данные дашборда");
+      toast.error("Не удалось загрузить данные");
       console.log(err);
     }
   }, [currentMonth]);
@@ -57,298 +56,156 @@ export default function Dashboard() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const handleStartStudying = useCallback(
-    (deckId) => {
-      navigate(`/study?deck=${deckId}&mode=learning`);
-    },
-    [navigate],
-  );
-
-  const getUpcomingDays = () => {
-    const today = new Date();
-    return scheduleData
-      .filter((day) => {
-        const dayDate = new Date(day.date);
-        return dayDate >= today && day.count > 0;
-      })
-      .slice(0, 3);
+  const handleStartStudying = (deckId) => {
+    navigate(`/study?deck=${deckId}&mode=learning`);
   };
 
   const statsCards = [
-    {
-      icon: Target,
-      label: "На сегодня",
-      value: stats?.cards_due_today || 0,
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-600",
-    },
-    {
-      icon: BookOpen,
-      label: "Колоды",
-      value: stats?.total_decks || 0,
-      bgColor: "bg-purple-100",
-      textColor: "text-purple-600",
-    },
-    {
-      icon: TrendingUp,
-      label: "Изучено",
-      value: stats?.cards_learned || 0,
-      bgColor: "bg-green-100",
-      textColor: "text-green-600",
-    },
-    {
-      icon: Zap,
-      label: "Карточки",
-      value: stats?.total_cards || 0,
-      bgColor: "bg-orange-100",
-      textColor: "text-orange-600",
-    },
+    { label: "На сегодня", value: stats?.cards_due_today || 0, icon: Target, color: "blue" },
+    { label: "Всего колод", value: stats?.total_decks || 0, icon: BookOpen, color: "purple" },
+    { label: "Изучено", value: stats?.cards_learned || 0, icon: TrendingUp, color: "emerald" },
+    { label: "Карточки", value: stats?.total_cards || 0, icon: Zap, color: "orange" },
   ];
 
-  const upcomingDays = getUpcomingDays();
+  const colorMap = {
+    blue: "bg-blue-50 text-blue-600 shadow-blue-100",
+    purple: "bg-purple-50 text-purple-600 shadow-purple-100",
+    emerald: "bg-emerald-50 text-emerald-600 shadow-emerald-100",
+    orange: "bg-orange-50 text-orange-600 shadow-orange-100",
+  };
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-2 sm:px-4 lg:px-2 py-2 space-y-10">
-        <div>
-          <h1 className="heading-page">Главная</h1>
-        </div>
-        <div className="w-full">
-          <div className="w-full max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center justify-center">
-              <div className="w-full lg:w-2/5">
-                <StudyPet />
-              </div>
-
-              <div className="w-full lg:w-3/5">
-                <div className="grid grid-cols-2 lg:grid-cols-2 gap-5 lg:gap-6">
-                  {statsCards.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="
-              bg-linear-to-br from-white to-gray-50 rounded-2xl p-6 border border-gray-100
-              hover:border-indigo-200 hover:shadow-md transition-all duration-300
-            "
-                    >
-                      <div className="flex items-center gap-5">
-                        <div
-                          className={`w-14 h-14 ${stat.bgColor} rounded-xl flex items-center justify-center`}
-                        >
-                          <stat.icon size={24} className={stat.textColor} />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm text-gray-600">{stat.label}</p>
-                          <p className="text-3xl font-bold text-gray-900">
-                            {stat.value}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+      <div className="max-w-6xl mx-auto space-y-10">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Дашборд</h1>
+            <p className="text-slate-500 mt-1">Твой личный прогресс обучения на сегодня</p>
           </div>
-        </div>
+          <div className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl">
+             <Flame size={18} />
+             <span>5 дней ударного режима!</span>
+          </div>
+        </header>
+
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-5 bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
+            <StudyPet />
+          </div>
+
+          <div className="lg:col-span-7 grid grid-cols-2 gap-4">
+            {statsCards.map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110 ${colorMap[stat.color]}`}>
+                  <stat.icon size={24} />
+                </div>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                <h3 className="text-3xl font-black text-slate-900 mt-1">{stat.value}</h3>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 ml-2">
+              <PlayCircle className="text-blue-600" />
+              Нужно повторить
+            </h2>
+            
             {decksWithDueCards.length > 0 ? (
-              <Card className="border-l-4 border-blue-500 bg-blue-50/60 shadow-md">
-                <div className="p-2 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                      <Clock className="text-white" size={20} />
-                    </div>
-                    <div>
-                      <h2 className="text-lg ">
-                        На сегодня{" "}
-                        <span className="font-bold text-blue-700">
-                          {stats?.cards_due_today || 0}
-                        </span>{" "}
-                        карточек
-                      </h2>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {decksWithDueCards.map((deck) => (
-                      <div
-                        key={deck.id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow transition-all"
+              <div className="space-y-4">
+                {decksWithDueCards.map((deck) => (
+                  <div
+                    key={deck.id}
+                    className="group bg-white flex items-center justify-between p-5 rounded-[1.5rem] border border-slate-100 hover:border-blue-200 shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="w-12 h-12 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: `${deck.color || "#3B82F6"}15` }}
                       >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div
-                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                            style={{
-                              backgroundColor: (deck.color || "#3B82F6") + "20",
-                            }}
-                          >
-                            <BookOpen
-                              size={18}
-                              style={{ color: deck.color || "#3B82F6" }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">
-                              {deck.name}
-                            </h3>
-                            <p className="text-xs sm:text-sm text-gray-600">
-                              {deck.cards_due_today} на сегодня
-                            </p>
-                          </div>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
-                          onClick={() => handleStartStudying(deck.id)}
-                        >
-                          <PlayCircle size={16} className="mr-1" />
-                          Начать
-                        </Button>
+                        <BookOpen size={22} style={{ color: deck.color || "#3B82F6" }} />
                       </div>
-                    ))}
+                      <div>
+                        <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{deck.name}</h3>
+                        <p className="text-sm text-slate-500 font-medium">{deck.cards_due_today} карточек ждет тебя</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleStartStudying(deck.id)}
+                      className="rounded-xl bg-blue-600 hover:bg-indigo-600 text-white font-bold px-6 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                    >
+                      Начать
+                    </Button>
                   </div>
-                </div>
-              </Card>
+                ))}
+              </div>
             ) : (
-              <Card className="border-2 border-dashed border-gray-300 bg-gray-50/80">
-                <div className="text-center py-10 px-6">
-                  <Target className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    Всё спокойно
-                  </h3>
-                  <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    На сегодня нет карточек для повторения. Отличная работа!
-                  </p>
+              <div className="bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 py-12 text-center">
+                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                   <Target className="text-slate-300" size={32} />
                 </div>
-              </Card>
+                <h3 className="text-lg font-bold text-slate-900">Всё чисто!</h3>
+                <p className="text-slate-500 max-w-xs mx-auto text-sm">Ты повторил все карточки на сегодня. Отдохни или добавь новые!</p>
+              </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 ">
-              <Link to="/decks">
-                <Card className="hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-3">
-                    <BookOpen size={20} className="text-blue-600" />
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { to: "/decks", label: "Колоды", icon: BookOpen, bg: "bg-blue-50", text: "text-blue-600" },
+                { to: "/statistics", label: "Статистика", icon: BarChart, bg: "bg-emerald-50", text: "text-emerald-600" },
+                { to: "/schedule", label: "План", icon: CalendarIcon, bg: "bg-purple-50", text: "text-purple-600" },
+              ].map((link) => (
+                <Link key={link.to} to={link.to} className="group">
+                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm group-hover:shadow-md transition-all flex flex-col items-center gap-3">
+                    <div className={`p-3 rounded-xl ${link.bg} ${link.text} transition-transform group-hover:scale-110`}>
+                      <link.icon size={20} />
+                    </div>
+                    <span className="text-xs font-black text-slate-700 uppercase tracking-tighter">{link.label}</span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                    Мои колоды
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-3">
-                    Колоды и карточки
-                  </p>
-                </Card>
-              </Link>
-
-              <Link to="/statistics">
-                <Card className="hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center mb-3">
-                    <BarChart size={20} className="text-green-600" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                    Статистика
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-3">
-                    Глубокий анализ прогресса
-                  </p>
-                </Card>
-              </Link>
-
-              <Link to="/schedule">
-                <Card className="hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3">
-                    <CalendarIcon size={20} className="text-purple-600" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                    Расписание
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-3">
-                    План повторений по дням
-                  </p>
-                </Card>
-              </Link>
+                </Link>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-6 ">
-            <Card className="shadow-md">
-              <div className="p-1 sm:p-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-base sm:text-2xs font-bold text-gray-900 flex items-center gap-2">
-                    <CalendarIcon className="text-blue-600" size={20} />
-                    Календарь обучения
-                  </h2>
-                </div>
-                <Calendar
-                  data={scheduleData}
-                  onDayClick={() => navigate("/schedule")}
-                />
-              </div>
-            </Card>
+          <aside className="space-y-6">
+            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 ml-2">
+              <CalendarIcon className="text-blue-600" size={22} />
+              График
+            </h2>
+            
+            <div className="bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm">
+              <Calendar
+                data={scheduleData}
+                onDayClick={() => navigate("/schedule")}
+              />
+            </div>
 
-            {upcomingDays.length > 0 && (
-              <Card className="shadow-md">
-                <div className="p-1 sm:p-1">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Flame className="text-orange-500" size={20} />
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900">
-                      Ближайшие дни
-                    </h3>
-                  </div>
-
-                  <div className="space-y-3">
-                    {upcomingDays.map((day) => {
-                      const dayDate = new Date(day.date);
-                      const isToday =
-                        dayDate.toDateString() === new Date().toDateString();
-                      const isTomorrow =
-                        dayDate.toDateString() ===
-                        new Date(Date.now() + 86400000).toDateString();
-
-                      let label = dayDate.toLocaleDateString("ru-RU", {
-                        day: "numeric",
-                        month: "short",
-                      });
-
-                      if (isToday) label = "Сегодня";
-                      if (isTomorrow) label = "Завтра";
-
-                      return (
-                        <div
-                          key={day.date}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div>
-                            <p className="font-semibold text-gray-900 text-sm">
-                              {label}
-                            </p>
-                            <p className="text-xs text-gray-600 mt-0.5">
-                              {day.count}{" "}
-                              {day.count === 1
-                                ? "карточка"
-                                : day.count < 5
-                                  ? "карточки"
-                                  : "карточек"}
-                            </p>
-                          </div>
-                          <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                              isToday
-                                ? "bg-blue-500 text-white"
-                                : "bg-white border-2 border-gray-200 text-gray-700"
-                            }`}
-                          >
-                            {day.count}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
+            <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
+               <div className="relative z-10">
+                 <div className="flex items-center gap-2 mb-4 opacity-80 font-bold text-xs uppercase tracking-widest">
+                   <Clock size={14} />
+                   Скоро в программе
+                 </div>
+                 <div className="space-y-4">
+                    {scheduleData.slice(0, 2).map((day, i) => (
+                      <div key={i} className="flex items-center justify-between border-b border-white/10 pb-3 last:border-0 last:pb-0">
+                         <div>
+                            <p className="text-sm font-bold">{new Date(day.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}</p>
+                            <p className="text-xs text-white/60">{day.count} карточек</p>
+                         </div>
+                         <ArrowUpRight size={16} className="text-white/40" />
+                      </div>
+                    ))}
+                 </div>
+               </div>
+               <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
+            </div>
+          </aside>
         </div>
       </div>
     </Layout>

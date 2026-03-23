@@ -98,7 +98,6 @@ export default function FAQ() {
         </div>
       </nav>
 
-      {/* Header */}
       <header className="pt-32 pb-12 px-6 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-bold uppercase tracking-wider mb-8">
           <Sparkles size={14} className="animate-pulse" /> База знаний проекта
@@ -122,7 +121,6 @@ export default function FAQ() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-3xl mx-auto px-6 space-y-14">
         {filteredSections.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
@@ -185,7 +183,6 @@ export default function FAQ() {
           ))
         )}
 
-        {/* CTA Section */}
         <div className="mt-32 p-10 md:p-16 bg-slate-950 rounded-[3rem] text-center relative overflow-hidden shadow-2xl shadow-blue-900/20">
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full" />
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full" />

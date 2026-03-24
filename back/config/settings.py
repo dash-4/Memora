@@ -113,21 +113,27 @@ AUTH_USER_MODEL = 'accounts.User'
 #     'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,https://memora-r0392qk0q-dashas-projects-16d425a3.vercel.app,https://memora-pink-iota.vercel.app'
 # ).split(',')
 CORS_ALLOWED_ORIGINS = [
-    origin.strip() for origin in os.environ.get(
-        'CORS_ALLOWED_ORIGINS',
-        'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,https://memora-r0392qk0q-dashas-projects-16d425a3.vercel.app,https://memora-pink-iota.vercel.app'
-    ).split(',')
+    "https://memora-pink-iota.vercel.app",
+    "https://memora-265q.vercel.app", # бэкенд тоже добавляем для тестов в Browsable API
+    "http://localhost:3000",
+    "http://localhost:5173",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    origin.strip() for origin in os.environ.get(
-        'CORS_ALLOWED_ORIGINS',
-        'https://memora-r0392qk0q-dashas-projects-16d425a3.vercel.app,https://memora-pink-iota.vercel.app'
-    ).split(',')
+    "https://memora-pink-iota.vercel.app",
+    "https://memora-265q.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept", "accept-encoding", "authorization", "content-type",
+    "dnt", "origin", "user-agent", "x-csrftoken", "x-requested-with",
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

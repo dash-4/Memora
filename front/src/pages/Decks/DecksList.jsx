@@ -30,6 +30,28 @@ export default function DecksList() {
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const handleDeleteFolder = async (id) => {
+    if (!window.confirm("Вы уверены? Папка и все её содержимое будут удалены.")) return;
+
+    try {
+      await api.delete(`/folders/${id}/`);
+      toast.success("Папка успешно удалена");
+      
+      await fetchFoldersTree();
+
+      if (selectedFolderId === id) {
+        setSelectedFolderId(null);
+      } else if (selectedFolderId) {
+        fetchFolderContents(selectedFolderId);
+      } else {
+        fetchAllDecks();
+      }
+    } catch (err) {
+      console.error("Ошибка при удалении:", err);
+      toast.error("Не удалось удалить папку");
+    }
+  };
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(t);
@@ -118,10 +140,10 @@ export default function DecksList() {
 
   return (
     <Layout>
-      <div className="flex h-[calc(100vh-theme(spacing.16))] lg:h-[calc(100vh-theme(spacing.20))]  bg-[#FAFBFF]">
+      <div className="flex bg-[#FAFBFF]">
         
-        <aside className="hidden lg:block w-72 h-full flex-shrink-0 border-r border-slate-200/60 bg-white/50 backdrop-blur-md">
-          <div className="h-full ">
+        <aside className="hidden lg:block w-72 flex-shrink-0 border-r border-slate-200/60 bg-white/50 backdrop-blur-md">
+          <div className="h-full">
             <FolderSidebar
               folders={folders}
               selectedFolderId={selectedFolderId}
@@ -129,6 +151,7 @@ export default function DecksList() {
               expandedFolders={expandedFolders}
               onToggleExpand={toggleFolderExpand}
               onCreateFolder={() => setShowCreateFolderModal(true)}
+              onDeleteFolder={handleDeleteFolder} 
             />
           </div>
         </aside>
@@ -172,7 +195,7 @@ export default function DecksList() {
                 </Button>
                 <Button
                   onClick={() => setShowCreateDeckModal(true)}
-                  className="flex-[2] sm:flex-none rounded-2xl  font-bold px-4 md:px-4 py-2 sm:py-2 shadow-lg shadow-blue-100"
+                  className="flex-[2] sm:flex-none rounded-2xl font-bold px-4 md:px-4 py-2 sm:py-2 shadow-lg shadow-blue-100"
                 >
                   <Plus size={20} className="sm:mr-2" />
                   Новая колода
@@ -180,7 +203,7 @@ export default function DecksList() {
               </div>
             </div>
 
-            <div className="">
+            <div>
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -202,6 +225,7 @@ export default function DecksList() {
                       key={folder.id}
                       folder={folder}
                       onClick={handleFolderSelect}
+                      onDelete={handleDeleteFolder}
                     />
                   ))}
                 </div>
@@ -217,7 +241,7 @@ export default function DecksList() {
               </div>
 
               {filteredDecks.length > 0 ? (
-                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-4 md:gap-5">
                   {filteredDecks.map((deck) => (
                     <DeckCard key={deck.id} deck={deck} />
                   ))}
@@ -258,6 +282,7 @@ export default function DecksList() {
                 onFolderSelect={handleFolderSelect}
                 expandedFolders={expandedFolders}
                 onToggleExpand={toggleFolderExpand}
+                onDeleteFolder={handleDeleteFolder} 
                 onCreateFolder={() => {
                   setIsSidebarOpen(false);
                   setShowCreateFolderModal(true);

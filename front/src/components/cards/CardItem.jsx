@@ -1,52 +1,75 @@
-import { Edit2, Trash2, Calendar } from 'lucide-react';
+import { Edit2, Trash2, Calendar, Target } from 'lucide-react';
 
 export default function CardItem({ card, onEdit, onDelete }) {
-  const statusColor =
-    card.repetitions === 0 ? 'blue' :
-    card.repetitions < 3  ? 'yellow' : 'green';
+  const statusConfig = {
+    blue: { bg: 'bg-blue-50/50', text: 'text-blue-600', dot: 'bg-blue-500', label: 'Новая' },
+    yellow: { bg: 'bg-amber-50/50', text: 'text-amber-600', dot: 'bg-amber-500', label: 'В процессе' },
+    green: { bg: 'bg-emerald-50/50', text: 'text-emerald-600', dot: 'bg-emerald-500', label: 'Выучена' }
+  };
 
-  const statusText =
-    card.repetitions === 0 ? 'Новая' :
-    card.repetitions < 3  ? 'Изучается' : 'Выучена';
+  const colorKey = 
+    card.repetitions === 0 ? 'blue' : 
+    card.repetitions < 3 ? 'yellow' : 'green';
+  
+  const s = statusConfig[colorKey];
 
   return (
-    <div className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all">
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-        <div className="flex-1 w-full">
-          <p className="font-medium text-gray-900 mb-2 break-words">{card.front}</p>
-          <p className="text-gray-600 text-sm break-words">{card.back}</p>
+    <div className="group relative p-5 sm:p-6 bg-white border border-slate-100 rounded-[2rem] hover:shadow-xl hover:shadow-slate-200/50 hover:border-transparent transition-all duration-500 ease-[0.23,1,0.32,1]">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+        
+        <div className="flex-1 space-y-3 w-full">
+          <div className="space-y-1">
+            <h4 className="font-black text-slate-900 text-lg leading-tight break-words">
+              {card.front}
+            </h4>
+            <p className="text-slate-500 text-sm font-medium leading-relaxed break-words">
+              {card.back}
+            </p>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-500">
-            <span className="flex items-center">
-              <span className={`w-2 h-2 rounded-full mr-1 bg-${statusColor}-500`}></span>
-              Повторений: {card.repetitions}
-            </span>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-xl ${s.bg} ${s.text}`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${s.dot} animate-pulse`} />
+              <span className="text-[10px] font-black uppercase tracking-wider">{s.label}</span>
+            </div>
+
+            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <Target size={12} strokeWidth={3} />
+              <span>{card.repetitions} повторов</span>
+            </div>
+
             {card.next_review && (
-              <span className="flex items-center">
-                <Calendar size={12} className="mr-1" />
-                {new Date(card.next_review).toLocaleDateString('ru-RU')}
-              </span>
+              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-1 rounded-lg">
+                <Calendar size={12} strokeWidth={3} />
+                <span>{new Date(card.next_review).toLocaleDateString('ru-RU')}</span>
+              </div>
             )}
-            <span className={`px-2 py-0.5 rounded bg-${statusColor}-100 text-${statusColor}-700`}>
-              {statusText}
-            </span>
           </div>
         </div>
 
-        <div className="flex sm:flex-col gap-2 w-full sm:w-auto">
+        <div className="flex sm:flex-col gap-2 w-full sm:w-auto pt-2 sm:pt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
           <button
             onClick={() => onEdit(card)}
-            className="flex-1 sm:flex-none p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="flex-1 sm:flex-none p-3 bg-slate-50 text-slate-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all active:scale-90"
+            title="Редактировать"
           >
-            <Edit2 size={18} />
+            <Edit2 size={18} strokeWidth={2.5} />
           </button>
           <button
             onClick={() => onDelete(card.id)}
-            className="flex-1 sm:flex-none p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex-1 sm:flex-none p-3 bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all active:scale-90"
+            title="Удалить"
           >
-            <Trash2 size={18} />
+            <Trash2 size={18} strokeWidth={2.5} />
           </button>
         </div>
+      </div>
+
+      <div className="absolute bottom-0 left-12 right-12 h-[2px] bg-slate-50 rounded-full overflow-hidden">
+        <div 
+          className={`h-full ${s.dot} transition-all duration-1000`} 
+          style={{ width: `${Math.min((card.repetitions / 5) * 100, 100)}%` }}
+        />
       </div>
     </div>
   );

@@ -244,7 +244,6 @@ export default function DeckDetail() {
               active: statsCards.length > 0,
             },
           ].map((mode) => {
-            const colorClass = mode.active ? mode.color : 'gray';
             
             return (
               <div
@@ -291,7 +290,7 @@ export default function DeckDetail() {
           })}
         </div>
 
-        <div className="pt-4">
+        <div className="">
           <CardsList
             cards={cards}
             statsCards={statsCards}

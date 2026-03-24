@@ -1,147 +1,108 @@
 import { useState, useEffect } from 'react';
+import { X, Plus, Save, Info, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
 const CardModal = ({ deckId, card, onClose, onSuccess }) => {
   const isEditing = !!card;
-
-  const [formData, setFormData] = useState({
-    front: '',
-    back: '',
-  });
+  const [formData, setFormData] = useState({ front: '', back: '' });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (card) {
-      setFormData({
-        front: card.front,
-        back: card.back,
-      });
-    }
+    if (card) setFormData({ front: card.front, back: card.back });
   }, [card]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.front.trim() || !formData.back.trim()) {
-      toast.error('Заполните все обязательные поля');
+      toast.error('Заполни все поля, это важно для обучения');
       return;
     }
 
     setLoading(true);
-
     try {
-      const payload = {
-        front: formData.front.trim(),
-        back: formData.back.trim(),
-      };
-
+      const payload = { front: formData.front.trim(), back: formData.back.trim() };
       if (isEditing) {
         await api.patch(`/cards/${card.id}/`, payload);
       } else {
         await api.post('/cards/', { ...payload, deck: deckId });
       }
-      toast.success(isEditing ? 'Карточка обновлена! ✅' : 'Карточка создана! 🎉');
+      toast.success(isEditing ? 'Обновили! 📝' : 'Готово! Карточка в колоде 🃏');
       onSuccess();
     } catch (error) {
-      let errorMessage =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        (isEditing ? 'Ошибка обновления карточки' : 'Ошибка создания карточки');
-
-      if (errorMessage && typeof errorMessage === 'object') {
-        const allMessages = Object.values(errorMessage)
-          .flat()
-          .map((m) => String(m));
-        errorMessage = allMessages.join(' ');
-      }
-
-      toast.error(String(errorMessage));
+      toast.error('Что-то пошло не так при сохранении');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fadeIn"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+      className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {isEditing ? ' Редактировать карточку' : '➕ Создать карточку'}
+      <div className="bg-white rounded-[2.5rem] max-w-xl w-full max-h-[90vh] overflow-hidden shadow-[0_32px_64px_-15px_rgba(0,0,0,0.2)] flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
+        
+        {/* Header */}
+        <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl ${isEditing ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'}`}>
+              {isEditing ? <Save size={20} strokeWidth={2.5} /> : <Plus size={20} strokeWidth={2.5} />}
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              {isEditing ? 'Редактирование' : 'Новая карточка'}
             </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              aria-label="Закрыть"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-50 rounded-xl text-slate-400 hover:text-slate-900 transition-all active:scale-90"
+          >
+            <X size={24} strokeWidth={2.5} />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Вопрос (Лицевая сторона) <span className="text-red-500">*</span>
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+          
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
+              Вопрос (Лицо)
             </label>
             <textarea
               value={formData.front}
               onChange={(e) => setFormData({ ...formData, front: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-              rows="4"
-              placeholder="Введите вопрос или термин..."
+              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-blue-200 focus:ring-4 focus:ring-blue-50/50 transition-all outline-none resize-none min-h-[120px] font-bold text-slate-700 placeholder:font-medium"
+              placeholder="Например: Как в React передать данные компоненту?"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Что нужно вспомнить? (например: "Что такое React?")
-            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Ответ (Обратная сторона) <span className="text-red-500">*</span>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
+              Ответ (Оборот)
             </label>
             <textarea
               value={formData.back}
               onChange={(e) => setFormData({ ...formData, back: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-              rows="4"
-              placeholder="Введите ответ..."
+              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-50/50 transition-all outline-none resize-none min-h-[120px] font-bold text-slate-700 placeholder:font-medium"
+              placeholder="Ответ: Через props..."
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Правильный ответ или определение
+          </div>
+
+          <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl">
+            <Info className="text-blue-500 shrink-0" size={18} />
+            <p className="text-xs font-medium text-slate-500 leading-relaxed">
+              Короткие и емкие ответы запоминаются на 40% лучше. Старайся не писать длинные тексты.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4">
             <Button
               type="button"
-              variant="secondary"
+              variant="ghost"
               onClick={onClose}
-              className="flex-1 order-2 sm:order-1"
+              className="flex-1 h-14 rounded-2xl font-black text-slate-400 border-2 border-slate-100"
               disabled={loading}
             >
               Отмена
@@ -149,18 +110,12 @@ const CardModal = ({ deckId, card, onClose, onSuccess }) => {
             <Button
               type="submit"
               disabled={loading || !formData.front.trim() || !formData.back.trim()}
-              className="flex-1 order-1 sm:order-2"
+              className="flex-[2] h-14 rounded-2xl font-black bg-slate-900 text-white shadow-xl shadow-slate-200 active:scale-95 transition-transform"
             >
               {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {isEditing ? 'Сохранение...' : 'Создание...'}
-                </span>
+                <Loader2 className="animate-spin mx-auto" size={20} />
               ) : (
-                isEditing ? ' Сохранить' : '➕ Создать карточку'
+                isEditing ? 'Сохранить изменения' : 'Создать карточку'
               )}
             </Button>
           </div>

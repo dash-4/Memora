@@ -113,7 +113,7 @@ export default function Dashboard() {
         </header>
 
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          <div className="lg:col-span-5 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col items-center justify-center min-h-[320px]">
+          <div className="lg:col-span-5 flex flex-col items-center justify-center min-h-[320px]">
             <StudyPet />
           </div>
 

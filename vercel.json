@@ -1,11 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "front/dist",
-  "installCommand": "cd front && npm install",
-  "buildCommand": "cd front && npm run build",
+  "installCommand": "npm --prefix front ci",
+  "buildCommand": "npm --prefix front run build",
   "functions": {
     "api/wsgi.py": {
-      "runtime": "vercel-python@3.12",
       "maxDuration": 60
     }
   },

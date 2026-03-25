@@ -69,9 +69,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 def _normalize_database_url(raw):
     """
-    Vercel env vars are expected to be plain strings, but sometimes they arrive
-    wrapped in quotes or as a bytes-literal-like string (e.g. "b'postgresql://...'" ).
-    Normalize to a clean DSN string so dj_database_url can parse it.
+    Normalize `DATABASE_URL` coming from Vercel env vars.
+
+    Sometimes Vercel provides values wrapped/serialized like:
+    - "b'postgresql://...'" (bytes-literal string)
+    - "b''://host/db" (broken prefix, scheme becomes "b''")
+
+    `dj_database_url.parse()` is strict about schemes, so we aggressively extract
+    the first valid postgres DSN substring.
     """
     if raw is None:
         return None
@@ -82,34 +87,35 @@ def _normalize_database_url(raw):
 
     s = str(raw).strip()
 
-    # Iteratively strip surrounding quotes (sometimes env vars arrive as '"..."' or "b'...'" wrapped).
-    for _ in range(2):
-        if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
-            s = s[1:-1].strip()
-
-    # Strip bytes-literal wrapper: b'...'
-    if (s.startswith("b'") and s.endswith("'")) or (s.startswith('b"') and s.endswith('"')):
-        s = s[2:-1]
-
-    # If Vercel gave us something like: b''://host/db?sslmode=require
-    # then scheme becomes "b''" and dj_database_url fails.
-    if s.startswith("b''://") or s.startswith('b""://'):
-        s = "postgresql://" + s.split("://", 1)[1]
-
-    # Last-resort: if it still starts with "b''" and contains a DSN delimiter,
-    # force the expected postgres scheme.
-    if s.startswith("b''") and "://" in s and ("postgresql://" not in s and "postgres://" not in s):
-        rest = s.split("://", 1)[1]
-        s = "postgresql://" + rest
-
-    # Final extraction: if the DSN exists inside the string, pull the first valid postgres substring.
-    # This covers cases like: "b'postgresql://...'" or strings with extra prefixes/suffixes.
     import re
-    m = re.search(r"(postgresql://[^\s'\"<>]+|postgres://[^\s'\"<>]+)", s)
+
+    # Strip surrounding quotes: '"..."' or "'...'" (sometimes happens in env editors).
+    if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
+        s = s[1:-1].strip()
+
+    # Fix broken bytes-prefixes with optional whitespace: b'' ://...
+    s = re.sub(r"^b''\s*://", "postgresql://", s)
+    s = re.sub(r'^b""\s*://', "postgresql://", s)
+
+    # If it is a bytes-literal string like: b'postgresql://...'
+    # remove the wrapper if it is properly closed.
+    s = re.sub(r"^b'([^']*)'$", r"\1", s)
+    s = re.sub(r'^b"([^"]*)"$', r"\1", s)
+
+    # Final extraction: pull the first valid postgres DSN substring from anywhere.
+    # This covers cases with extra prefixes/suffixes.
+    m = re.search(r"(postgres(?:ql)?://[^\s'\"<>]+)", s, flags=re.IGNORECASE)
     if m:
         s = m.group(1)
 
-    return s.strip()
+    s = s.strip()
+
+    # Last-resort sanity: if scheme is still broken but DSN delimiter exists, repair it.
+    if s.startswith("b''") and "://" in s:
+        rest = s.split("://", 1)[1]
+        s = "postgresql://" + rest
+
+    return s
 
 
 DATABASE_URL = _normalize_database_url(os.environ.get("DATABASE_URL"))

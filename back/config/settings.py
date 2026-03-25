@@ -66,14 +66,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+#         conn_max_age=600,
+#         conn_health_checks=True,
+#     )
+# }
+# DATABASE_URL = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'
+
+# Вместо того что было, сделай так:
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': dj_database_url.parse(os.environ.get('DATABASE_URL', 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'))
 }
-DATABASE_URL = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'
 
 
 AUTH_PASSWORD_VALIDATORS = [

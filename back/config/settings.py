@@ -10,10 +10,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-chang
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
-    'memora-265q.vercel.app', 
-    'localhost', 
-    '127.0.0.1', 
-    '.vercel.app' 
+    'memora-265q.vercel.app',
+    'memora-pink-iota.vercel.app',
+    'localhost',
+    '127.0.0.1',
+    '.vercel.app',
 ]
 INSTALLED_APPS = [
     'django.contrib.admin',

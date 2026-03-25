@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "front/dist",
+  "installCommand": "cd front && npm install",
+  "buildCommand": "cd front && npm run build",
+  "functions": {
+    "api/wsgi.py": {
+      "runtime": "vercel-python@3.12",
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/wsgi.py"
+    },
+    {
+      "src": "/admin/(.*)",
+      "dest": "api/wsgi.py"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "back/staticfiles/$1"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/|admin/|static/|media/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+

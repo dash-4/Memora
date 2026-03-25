@@ -66,14 +66,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Твоя строка подключения
-if not os.environ.get('DATABASE_URL'):
-    os.environ['DATABASE_URL'] = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'
+# settings.py
+
+# Сначала определяем URL (приоритет у системной переменной Vercel)
+DATABASE_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
+
+# Если обе пустые, подставляем твою рабочую строку
+if not DATABASE_URL:
+    DATABASE_URL = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn?sslmode=require'
 
 DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

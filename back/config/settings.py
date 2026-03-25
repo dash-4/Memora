@@ -120,6 +120,23 @@ def _normalize_database_url(raw):
 
 DATABASE_URL = _normalize_database_url(os.environ.get("DATABASE_URL"))
 
+# Extra hardening: if Vercel still passes a broken bytes-literal prefix like
+# `b''://...`, dj_database_url will treat scheme as `b''` and crash at import time.
+if isinstance(DATABASE_URL, str):
+    if DATABASE_URL.startswith("b''") and "://" in DATABASE_URL:
+        DATABASE_URL = "postgresql://" + DATABASE_URL.split("://", 1)[1]
+    if DATABASE_URL.startswith('b""') and "://" in DATABASE_URL:
+        DATABASE_URL = "postgresql://" + DATABASE_URL.split("://", 1)[1]
+    # As a fallback, replace any leading bytes-literal pattern.
+    DATABASE_URL = DATABASE_URL.replace("b''://", "postgresql://", 1).replace('b""://', "postgresql://", 1)
+
+# Safe debug: log only the scheme-ish prefix.
+try:
+    head = (DATABASE_URL or "")[:12]
+    print(f"[db] DATABASE_URL head={head!r}")
+except Exception:
+    pass
+
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }

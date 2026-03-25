@@ -67,7 +67,39 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+def _normalize_database_url(raw):
+    """
+    Vercel env vars are expected to be plain strings, but sometimes they arrive
+    wrapped in quotes or as a bytes-literal-like string (e.g. "b'postgresql://...'" ).
+    Normalize to a clean DSN string so dj_database_url can parse it.
+    """
+    if raw is None:
+        return None
+
+    # Be defensive: env vars should be str, but handle bytes just in case.
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", errors="replace")
+
+    s = str(raw).strip()
+
+    # Strip surrounding quotes: '"..."'
+    if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
+        s = s[1:-1].strip()
+
+    # Strip bytes-literal wrapper: b'...'
+    if (s.startswith("b'") and s.endswith("'")) or (s.startswith('b"') and s.endswith('"')):
+        s = s[2:-1]
+
+    # Handle rare broken prefix like: b''://...
+    if s.startswith("b''://"):
+        s = "postgresql://" + s[len("b''://"):]
+    if s.startswith('b""://'):
+        s = "postgresql://" + s[len('b""://'):]
+
+    return s
+
+
+DATABASE_URL = _normalize_database_url(os.environ.get("DATABASE_URL"))
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)

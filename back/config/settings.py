@@ -82,21 +82,34 @@ def _normalize_database_url(raw):
 
     s = str(raw).strip()
 
-    # Strip surrounding quotes: '"..."'
-    if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
-        s = s[1:-1].strip()
+    # Iteratively strip surrounding quotes (sometimes env vars arrive as '"..."' or "b'...'" wrapped).
+    for _ in range(2):
+        if (s.startswith("'") and s.endswith("'")) or (s.startswith('"') and s.endswith('"')):
+            s = s[1:-1].strip()
 
     # Strip bytes-literal wrapper: b'...'
     if (s.startswith("b'") and s.endswith("'")) or (s.startswith('b"') and s.endswith('"')):
         s = s[2:-1]
 
-    # Handle rare broken prefix like: b''://...
-    if s.startswith("b''://"):
-        s = "postgresql://" + s[len("b''://"):]
-    if s.startswith('b""://'):
-        s = "postgresql://" + s[len('b""://'):]
+    # If Vercel gave us something like: b''://host/db?sslmode=require
+    # then scheme becomes "b''" and dj_database_url fails.
+    if s.startswith("b''://") or s.startswith('b""://'):
+        s = "postgresql://" + s.split("://", 1)[1]
 
-    return s
+    # Last-resort: if it still starts with "b''" and contains a DSN delimiter,
+    # force the expected postgres scheme.
+    if s.startswith("b''") and "://" in s and ("postgresql://" not in s and "postgres://" not in s):
+        rest = s.split("://", 1)[1]
+        s = "postgresql://" + rest
+
+    # Final extraction: if the DSN exists inside the string, pull the first valid postgres substring.
+    # This covers cases like: "b'postgresql://...'" or strings with extra prefixes/suffixes.
+    import re
+    m = re.search(r"(postgresql://[^\s'\"<>]+|postgres://[^\s'\"<>]+)", s)
+    if m:
+        s = m.group(1)
+
+    return s.strip()
 
 
 DATABASE_URL = _normalize_database_url(os.environ.get("DATABASE_URL"))

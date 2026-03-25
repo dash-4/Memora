@@ -67,17 +67,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Твоя строка подключения
-DATABASE_URL = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'
+if not os.environ.get('DATABASE_URL'):
+    os.environ['DATABASE_URL'] = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    )
+    'default': dj_database_url.config(conn_max_age=600)
 }
-
-# Добавь эти настройки для стабильности соединения
-DATABASES['default']['CONN_MAX_AGE'] = 600
 
 AUTH_PASSWORD_VALIDATORS = [
     {

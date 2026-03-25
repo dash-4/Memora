@@ -67,7 +67,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASE_URL = 'postgresql://memora_db_2ldn_user:CuhM1DAfrBSae9Ny9IzyexofCmf25CXN@dpg-d5tidnu3jp1c73e8nn9g-a/memora_db_2ldn?sslmode=require'
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
